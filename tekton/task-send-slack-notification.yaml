@@ -10,7 +10,7 @@ spec:
       description: Pipeline debug mode
       default: "0"
   workspaces:
-    - name: work
+    - name: output
   steps:
     - name: send-slack-notification
       # image: registry.access.redhat.com/ubi9/ubi
