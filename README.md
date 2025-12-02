@@ -116,6 +116,15 @@ This repository contains a basic pipeline configuration that demonstrates basic 
 * Navigate to the pipeline run by clicking "View the PipelineRun"
 ![](./docs/062-view-pipelinerun.png)
 
+* Observe the pipeline run
+![](./docs/063-observe-pipeline-run.png)
+
+* Review logs of individual tasks by navigating to the respective task
+![](./docs/064-task-logs.png)
+
+* In case of issues, inspect the task status
+![](./docs/065-task-status-errors.png)
+
 ## Noteworthy docs
 
 * [IBM Cloud Continuous Delivery](https://cloud.ibm.com/docs/ContinuousDelivery)

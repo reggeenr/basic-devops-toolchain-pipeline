@@ -1,0 +1,1 @@
+echo "This is output rendered by a custom script"

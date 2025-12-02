@@ -61,6 +61,8 @@ spec:
       params:
         - name: greeting
           value: $(params.greeting)
+        - name: git-repo-directory
+          value: $(params.git-repo-directory)
         - name: pipeline-debug
           value: $(params.pipeline-debug)
     - name: git-push

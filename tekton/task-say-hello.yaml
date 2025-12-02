@@ -6,6 +6,8 @@ spec:
   params:
     - name: greeting
       type: string
+    - name: git-repo-directory
+      type: string
     - name: pipeline-debug
       description: Pipeline debug mode
       default: "0"
@@ -35,6 +37,11 @@ spec:
           fi
 
           echo "Greeting: $(params.greeting)"
+
+          echo "Moving into the directory that contains the custom scripts '$(workspaces.output.path)/$(params.git-repo-directory)' ..."
+          cd $(workspaces.output.path)/$(params.git-repo-directory)
+          ./src/my-script.sh
+
 
           echo "Task completed successfully!"
 
