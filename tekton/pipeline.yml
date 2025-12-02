@@ -37,7 +37,7 @@ spec:
       taskRef:
         name: git-clone-repo
       workspaces:
-        - name: work
+        - name: output
           workspace: pipeline-ws
       params:
         - name: repository
@@ -56,7 +56,7 @@ spec:
       taskRef:
         name: hello-world
       workspaces:
-        - name: work
+        - name: output
           workspace: pipeline-ws
       params:
         - name: greeting
@@ -69,7 +69,7 @@ spec:
       taskRef:
         name: git-push
       workspaces:
-        - name: work
+        - name: output
           workspace: pipeline-ws
       params:
         - name: git-repo-directory
@@ -93,7 +93,7 @@ spec:
       taskRef:
         name: send-slack-notification
       workspaces:
-        - name: work
+        - name: output
           workspace: pipeline-ws
       params:
         - name: slack-webhook

@@ -41,8 +41,8 @@ spec:
           yum install -y git 
           git --version
 
-          echo "Moving into the directory that contains the data exports '$(workspaces.work.path)/$(params.git-repo-directory)' ..."
-          cd $(workspaces.work.path)/$(params.git-repo-directory)
+          echo "Moving into the directory that contains the data exports '$(workspaces.output.path)/$(params.git-repo-directory)' ..."
+          cd $(workspaces.output.path)/$(params.git-repo-directory)
 
           if [[ `git status --porcelain` ]]; then
               echo "Detected changes..."
