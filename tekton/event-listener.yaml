@@ -1,0 +1,12 @@
+# https://tekton.dev/docs/triggers/eventlisteners/
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: basic-pipeline-listener
+spec:
+  triggers:
+    - name: basic-pipeline-trigger 
+      bindings:
+        - ref: basic-pipeline-binding
+      template:
+        ref: basic-pipeline-template

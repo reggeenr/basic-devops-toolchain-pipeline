@@ -1,0 +1,62 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: git-push
+spec:
+  params:
+    - name: git-user-name
+      type: string
+    - name: git-user-email
+      type: string
+    - name: git-repo-directory
+      type: string
+    - name: pipeline-debug
+      description: Pipeline debug mode
+      default: "0"
+  workspaces:
+    - name: work
+  steps:
+    - name: git-push
+      image: registry.access.redhat.com/ubi9/ubi
+      command: ["/bin/bash"]
+      args:
+        - "-c"
+        - |
+          #!/bin/bash
+          set -euo pipefail
+
+          if [ $(params.pipeline-debug) == 1 ]; then
+              env
+              pwd
+              ls -l
+              echo "=== cat /artifacts/_toolchain.json ==="
+              cat /artifacts/_toolchain.json
+              echo ""
+              echo "======================================"
+              trap env EXIT
+              set -x
+          fi
+
+          echo "Installing git ..."
+          yum install -y git 
+          git --version
+
+          echo "Moving into the directory that contains the data exports '$(workspaces.work.path)/$(params.git-repo-directory)' ..."
+          cd $(workspaces.work.path)/$(params.git-repo-directory)
+
+          if [[ `git status --porcelain` ]]; then
+              echo "Detected changes..."
+              git status
+              dateTime=$(date '+%Y%m%d-%H%M%S')
+              git config --global user.email "$(params.git-user-email)"
+              git config --global user.name "$(params.git-user-name)"
+              git add -A
+              git commit -a -m "Pipeline run $dateTime"
+              git push
+              echo "Changes where pushed to origin ..."
+          else
+              echo "No changes detected!\n"
+          fi
+
+
+

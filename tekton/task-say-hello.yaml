@@ -1,0 +1,43 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: hello-world
+spec:
+  params:
+    - name: greeting
+      type: string
+    - name: pipeline-debug
+      description: Pipeline debug mode
+      default: "0"
+  workspaces:
+    - name: work
+  steps:
+    - name: say-hello
+      # image: registry.access.redhat.com/ubi9/ubi
+      image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.49
+      command: ["/bin/bash"]
+      args:
+        - "-c"
+        - |
+          #!/bin/bash
+          set -euo pipefail
+
+          if [ $(params.pipeline-debug) == 1 ]; then
+              env
+              pwd
+              ls -l
+              echo "=== cat /artifacts/_toolchain.json ==="
+              cat /artifacts/_toolchain.json
+              echo ""
+              echo "======================================"
+              trap env EXIT
+              set -x
+          fi
+
+          echo "Greeting: $(params.greeting)"
+
+          echo "Task completed successfully!"
+
+
+
+

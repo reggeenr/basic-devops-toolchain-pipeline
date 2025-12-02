@@ -1,0 +1,77 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: send-slack-notification
+spec:
+  params:
+    - name: slack-webhook
+      type: string
+    - name: pipeline-debug
+      description: Pipeline debug mode
+      default: "0"
+  workspaces:
+    - name: work
+  steps:
+    - name: send-slack-notification
+      # image: registry.access.redhat.com/ubi9/ubi
+      image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.49
+      env:
+        # keep slack message injected in an env var to let YAML manage the quote for us
+        - name: PIPELINE_RUN_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tekton.dev/pipelineRun']
+        - name: PIPELINE_RUN_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['devops.cloud.ibm.com/tekton-pipeline']
+        - name: PIPELINE_RUN_URL
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['devops.cloud.ibm.com/pipeline-run-url']
+        - name: BUILD_NUMBER
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['devops.cloud.ibm.com/build-number']
+        - name: PIPELINE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['devops.cloud.ibm.com/pipeline-id']
+        - name: TRIGGER_TYPE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['devops.cloud.ibm.com/trigger-type']
+        - name: TRIGGER_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['devops.cloud.ibm.com/trigger-name']
+        - name: TRIGGERED_BY
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['devops.cloud.ibm.com/triggered-by']
+      command: ["/bin/bash"]
+      args:
+        - "-c"
+        - |
+          #!/bin/bash
+          set -euo pipefail
+
+          if [ $(params.pipeline-debug) == 1 ]; then
+              env
+              pwd
+              ls -l
+              echo "=== cat /artifacts/_toolchain.json ==="
+              cat /artifacts/_toolchain.json
+              echo ""
+              echo "======================================"
+              trap env EXIT
+              set -x
+          fi
+
+          curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"Pipeline run \`${PIPELINE_RUN_NAME}\` failed. :attention-please: \nView *<${PIPELINE_RUN_URL}|Logs and Details.>*\n\nTrigger: \`${TRIGGER_NAME}\` triggered by ${TRIGGERED_BY}\n\nfyi <!channel>\"}" $(params.slack-webhook)
+
+          echo "Message had been posted to Slack"
+
+
+
+

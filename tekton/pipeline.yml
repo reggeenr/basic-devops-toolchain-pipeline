@@ -1,0 +1,102 @@
+# https://tekton.dev/docs/pipelines/pipelines/
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: basic-pipeline
+spec:
+  params:
+    # Custom parameters
+    - name: greeting
+      type: string
+
+    # Git specific parameters
+    - name: git-repository
+      type: string
+    - name: git-branch
+      type: string
+    - name: git-repo-directory
+      type: string
+    - name: git-access-token
+      type: string
+    - name: git-user-name
+      type: string
+    - name: git-user-email
+      type: string
+
+    # Slack specific parameters
+    - name: slack-webhook
+      type: string
+
+    # General pipeline parameters
+    - name: pipeline-debug
+      default: "0"
+  workspaces:
+    - name: pipeline-ws
+  tasks:
+    - name: clone-task
+      taskRef:
+        name: git-clone-repo
+      workspaces:
+        - name: work
+          workspace: pipeline-ws
+      params:
+        - name: repository
+          value: $(params.git-repository)
+        - name: branch
+          value: $(params.git-branch)
+        - name: git-access-token
+          value: $(params.git-access-token)
+        - name: directory-name
+          value: $(params.git-repo-directory)
+        - name: pipeline-debug
+          value: $(params.pipeline-debug)
+    - name: simple-task
+      runAfter:
+          - clone-task
+      taskRef:
+        name: hello-world
+      workspaces:
+        - name: work
+          workspace: pipeline-ws
+      params:
+        - name: greeting
+          value: $(params.greeting)
+        - name: pipeline-debug
+          value: $(params.pipeline-debug)
+    - name: git-push
+      runAfter:
+          - simple-task
+      taskRef:
+        name: git-push
+      workspaces:
+        - name: work
+          workspace: pipeline-ws
+      params:
+        - name: git-repo-directory
+          value: $(params.git-repo-directory)
+        - name: git-user-name
+          value: $(params.git-user-name)
+        - name: git-user-email
+          value: $(params.git-user-email)
+        - name: pipeline-debug
+          value: $(params.pipeline-debug)
+  finally:
+    - name: notify-on-failure
+      # https://tekton.dev/docs/pipelines/pipelines/#guard-task-execution-using-when-expressions
+      when:
+        - input: $(tasks.status)
+          operator: in
+          values: ["Failed"]
+        - input: $(params.slack-webhook)
+          operator: notin
+          values: [""]
+      taskRef:
+        name: send-slack-notification
+      workspaces:
+        - name: work
+          workspace: pipeline-ws
+      params:
+        - name: slack-webhook
+          value: $(params.slack-webhook)
+        - name: pipeline-debug
+          value: $(params.pipeline-debug)

@@ -1,0 +1,9 @@
+# https://tekton.dev/docs/triggers/triggerbindings/
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: basic-pipeline-binding
+spec: 
+  params:
+    - name: branch
+      value: "main"

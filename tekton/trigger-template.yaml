@@ -1,0 +1,97 @@
+# https://tekton.dev/docs/triggers/triggertemplates/
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: basic-pipeline-template
+spec:
+  params:
+    # Custom parameters
+    - name: greeting
+      description: sample parameter to demonstrate ability to pass in config values
+      type: string
+      default: "Hello world!"
+
+    # Git specific parameters
+    - name: git-repository
+      description: The git repo
+      type: string
+    - name: git-branch
+      description: the branch for the git repository
+      type: string
+      default: "main"
+    - name: git-repo-directory
+      description: the new directory name of the cloned git repository
+      type: string
+    - name: git-user-name
+      description: the git user name used to perform the commits
+      type: string
+    - name: git-user-email
+      description: the git user name used to perform the commits
+      type: string
+    - name: git-access-token
+      description: illustrate alternate way to provide/get git access token
+      type: string
+      default: ""
+
+    # Slack specific parameters
+    - name: slack-webhook
+      description: Incoming Webhook URL of the Slack integration
+      type: string
+      default: ""
+
+    # General pipeline parameters
+    - name: pipeline-debug
+      default: "0"
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1
+      kind: PipelineRun
+      metadata:
+        name: basic-pipeline-run-$(uid)
+      spec:
+        pipelineRef:
+          name: basic-pipeline
+        podTemplate:
+          # Needed, if you need to run as root because you need to install packages and write into the mounted directory
+          # Once you roll our own task image, you can consider to run as non-root
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+            runAsGroup: 0
+            fsGroup: 0
+        params:
+          # Custom parameters
+          - name: greeting
+            value: $(params.greeting)
+
+          # Git specific parameters
+          - name: git-repository
+            value: $(params.git-repository)
+          - name: git-branch
+            value: $(params.git-branch)
+          - name: git-repo-directory
+            value: $(params.git-repo-directory)
+          - name: git-access-token
+            value: $(params.git-access-token)
+          - name: git-user-name
+            value: $(params.git-user-name)
+          - name: git-user-email
+            value: $(params.git-user-email)
+
+          # Slack specific parameters
+          - name: slack-webhook
+            value: $(params.slack-webhook)
+          
+          # General pipeline parameters
+          - name: pipeline-debug
+            value: $(params.pipeline-debug)
+        
+        # https://tekton.dev/docs/pipelines/workspaces
+        workspaces:
+          - name: pipeline-ws
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 1Gi
